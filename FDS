@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FDS SOP Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .answer-option {
+            background-color: #e0e7ff;
+            border: 2px solid #c7d2fe;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1rem;
+            color: #4a4a4a;
+        }
+        .answer-option:hover {
+            background-color: #c7d2fe;
+            border-color: #a5b4fc;
+        }
+        .answer-option.selected {
+            background-color: #93c5fd;
+            border-color: #60a5fa;
+            color: #ffffff;
+        }
+        .answer-option.correct {
+            background-color: #d1fae5;
+            border-color: #34d399;
+            color: #10b981;
+            font-weight: 600;
+        }
+        .answer-option.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #ef4444;
+            font-weight: 600;
+        }
+        .rationale-text {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 5px;
+            padding-left: 10px;
+            border-left: 3px solid #ccc;
+        }
+        .hint-text {
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        .nav-button {
+            background-color: #4f46e5;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            flex-grow: 1;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+            border: none;
+        }
+        .nav-button:hover {
+            background-color: #4338ca;
+        }
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .score-section {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #10b981;
+            margin-top: 20px;
+        }
+        .restart-button {
+            background-color: #10b981;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+            border: none;
+        }
+        .restart-button:hover {
+            background-color: #059669;
+        }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e0e7ff;
+            border-radius: 5px;
+            height: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4f46e5;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1 class="text-2xl font-bold text-gray-800">FDS SOP Quiz</h1>
+
+        <div class="progress-bar-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <div id="quiz-content">
+            <!-- Question and options will be loaded here by JavaScript -->
+        </div>
+
+        <div class="navigation-buttons">
+            <button id="prevButton" class="nav-button" disabled>Previous</button>
+            <button id="nextButton" class="nav-button">Next</button>
+        </div>
+
+        <div id="score-display" class="score-section hidden">
+            <!-- Score will be displayed here -->
+        </div>
+        <button id="restartButton" class="restart-button hidden">Restart Quiz</button>
+    </div>
+
+    <script>
+        const quizData = {
+            "questions": [
+                {
+                    "question": "When planning drive time between appointments for a therapist, what is generally considered the average or typical duration, including a buffer?",
+                    "hint": "Consider the standard time allocated for travel and preparation between client visits.",
+                    "answerOptions": [
+                        {
+                            "text": "5-10 minutes",
+                            "rationale": "This duration is only for drive time, not including the buffer, and is often for closer distances.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "Approximately 15 minutes",
+                            "rationale": "The SOP states that approximately 15 minutes is average/typical, allowing for 5-10 minutes drive time plus a 5-minute buffer.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "20-30 minutes",
+                            "rationale": "This duration is acceptable for longer distances when needed, but not the typical average.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "It varies greatly and there is no typical duration.",
+                            "rationale": "While it varies, the SOP provides a general average for planning purposes.",
+                            "isCorrect": false
+                        }
+                    ]
+                },
+                {
+                    "question": "If siblings receive therapy with the same therapist, what is the preferred scheduling method?",
+                    "hint": "Think about efficiency for both the therapist and the family.",
+                    "answerOptions": [
+                        {
+                            "text": "Schedule them on different days to allow for individual focus.",
+                            "rationale": "The SOP prioritizes back-to-back scheduling for efficiency, not separate days.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "Schedule them back-to-back unless absolutely impossible.",
+                            "rationale": "The SOP explicitly states to always schedule siblings back-to-back with the same therapist unless it's 100% impossible.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "Schedule them at the same time in different rooms.",
+                            "rationale": "This is not feasible for an in-home therapy model with one therapist.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "Allow the parent to choose any scheduling arrangement they prefer.",
+                            "rationale": "While parent preference is considered, the SOP has a strong guideline for sibling scheduling.",
+                            "isCorrect": false
+                        }
+                    ]
+                },
+                {
+                    "question": "A parent calls to cancel a session due to their child's illness. They decline to reschedule. What is the maximum number of non-rescheduled cancellations a client is allowed within a two-month period before potential policy implications?",
+                    "hint": "This number is part of the friendly reminder given to parents.",
+                    "answerOptions": [
+                        {
+                            "text": "1",
+                            "rationale": "The policy allows for more than one non-rescheduled cancellation within the specified timeframe.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "2",
+                            "rationale": "The policy allows for one more non-rescheduled cancellation than this number.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "3",
+                            "rationale": "The SOP states clients are allowed up to 3 non-rescheduled cancellations within a 2-month period.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "Unlimited, as long as it's due to illness.",
+                            "rationale": "Even for illness, there's a limit to non-rescheduled cancellations before policy implications.",
+                            "isCorrect": false
+                        }
+                    ]
+                },
+                {
+                    "question": "A full-time therapist has an unexpected open slot in their schedule. Which of the following is the LEAST preferred method for filling this gap?",
+                    "hint": "Consider which option is reactive rather than proactive, or doesn't maximize service hours.",
+                    "answerOptions": [
+                        {
+                            "text": "Offering a 5th session to an SDRC client who hasn't met their monthly appointment limit.",
+                            "rationale": "This is a highly encouraged strategy for filling gaps and maximizing service hours.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "Scheduling a make-up session for a client from 1-2 months prior.",
+                            "rationale": "This is an acceptable strategy for filling gaps, as long as monthly appointment limits aren't exceeded.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "Waiting for a new referral to come in that perfectly matches the open slot.",
+                            "rationale": "This is a passive approach that does not actively work to fill the immediate gap and is not listed as a preferred strategy in the 'Filling Gaps' checklist.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "Scheduling a new client for an evaluation if they are ready to start soon.",
+                            "rationale": "Scheduling new clients ASAP is a key strategy for filling gaps and building caseloads.",
+                            "isCorrect": false
+                        }
+                    ]
+                },
+                {
+                    "question": "What is the maximum number of evaluations that should typically be scheduled per day for a single therapist?",
+                    "hint": "This limit is in place to manage therapist workload and preparation time.",
+                    "answerOptions": [
+                        {
+                            "text": "1 evaluation",
+                            "rationale": "While possible, the SOP allows for more than one evaluation per day under certain conditions.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "2 evaluations",
+                            "rationale": "The SOP specifies a limit of 2 evaluations per day maximum, per therapist, unless the therapist agrees to more.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "3 evaluations",
+                            "rationale": "Scheduling more than two evaluations per day requires explicit therapist agreement.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "As many as the therapist has openings for.",
+                            "rationale": "There is a cap on the number of evaluations per day to prevent therapist burnout.",
+                            "isCorrect": false
+                        }
+                    ]
+                },
+                {
+                    "question": "For full-time, salaried therapists, how are 30-minute sessions counted for 'scheduling purposes' versus 'MMEU purposes'?",
+                    "hint": "There's a distinction in how these shorter sessions contribute to their overall metrics.",
+                    "answerOptions": [
+                        {
+                            "text": "0.5 hours for both scheduling and MMEU.",
+                            "rationale": "This is incorrect; there is a difference in how 30-minute sessions are counted for MMEU.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "0.7 units for scheduling and 0.5 hours for MMEU.",
+                            "rationale": "The counting is reversed; 0.5 hours for scheduling purposes, 0.7 units for MMEU.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "0.5 hours for scheduling and 0.7 units for MMEU.",
+                            "rationale": "The SOP states 30-minute sessions count as 0.5 hours for scheduling and 0.7 units for MMEU purposes.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "They are not counted for MMEU purposes.",
+                            "rationale": "30-minute sessions do count towards MMEU, but with a different unit value.",
+                            "isCorrect": false
+                        }
+                    ]
+                },
+                {
+                    "question": "A therapist needs to request time off for a vacation (2+ days). What is the minimum advanced notice required for this type of request?",
+                    "hint": "Longer absences require more planning ahead.",
+                    "answerOptions": [
+                        {
+                            "text": "At least 1 week in advance.",
+                            "rationale": "This is the notice for other PTO requests, not for vacations of 2+ days.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "As soon as possible (ASAP).",
+                            "rationale": "ASAP applies to sickness or emergencies, not planned vacations.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "At least 1 month in advance.",
+                            "rationale": "The SOP states that vacation and holiday requests (2+ days) should always be submitted at least 1 month in advance.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "No advanced notice is required if their caseload is light.",
+                            "rationale": "Advanced notice is always required for planned time off, regardless of caseload.",
+                            "isCorrect": false
+                        }
+                    ]
+                },
+                {
+                    "question": "When scheduling observation hours for a new SLPA Team Member, what is the minimum number of required observation hours that need to be in-person therapy appointments if they have 5 total required hours?",
+                    "hint": "The policy specifies a balance between virtual and in-person observation hours.",
+                    "answerOptions": [
+                        {
+                            "text": "1 hour",
+                            "rationale": "This is less than the minimum required in-person hours for 5 total hours.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "2 hours",
+                            "rationale": "This is the minimum for SLPAs with 3 required hours, not 5.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "3 hours",
+                            "rationale": "The SOP states that for SLPAs with 5 required hours, a minimum of 3 need to be in-person therapy appointments.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "All 5 hours must be in-person.",
+                            "rationale": "The SOP allows for some virtual observation hours, so not all 5 need to be in-person.",
+                            "isCorrect": false
+                        }
+                    ]
+                },
+                {
+                    "question": "When communicating with parents about a child receiving multiple types of therapy (e.g., OT and Speech), what is a crucial piece of information to include in your communication about a specific appointment?",
+                    "hint": "This detail helps parents distinguish between different services.",
+                    "answerOptions": [
+                        {
+                            "text": "The therapist's favorite color.",
+                            "rationale": "This information is irrelevant to scheduling and therapy communication.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "The specific discipline (e.g., 'occupational therapy' or 'OT') the appointment is for.",
+                            "rationale": "The SOP emphasizes specifying the type of therapy to avoid confusion for families with multiple services.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "The child's medical diagnosis.",
+                            "rationale": "While relevant to treatment, it's not the primary detail needed for appointment-specific communication with parents about different therapy types.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "The internal appointment code (e.g., 'PPTFA').",
+                            "rationale": "Internal codes are not for parent communication.",
+                            "isCorrect": false
+                        }
+                    ]
+                },
+                {
+                    "question": "You have just successfully rescheduled a client's appointment. Besides updating the Raintree system, where else should you ensure this information is tracked for proper documentation?",
+                    "hint": "Think about the tools used for overall scheduling oversight and bonus tracking.",
+                    "answerOptions": [
+                        {
+                            "text": "The therapist's personal calendar.",
+                            "rationale": "While the therapist's calendar will be updated, the SOP specifies a central tracking sheet for rescheduled appointments.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "The client's medical chart.",
+                            "rationale": "The medical chart contains clinical information, not typically detailed scheduling updates.",
+                            "isCorrect": false
+                        },
+                        {
+                            "text": "The 'Make-Ups & Cancellations' sheet and the 'Scheduling Team Bonus Tracking' sheet.",
+                            "rationale": "The SOP explicitly states to update the reschedule/make-up spreadsheet and the Scheduling Team Bonus Tracking sheet for recaptured appointments.",
+                            "isCorrect": true
+                        },
+                        {
+                            "text": "A physical whiteboard in the office.",
+                            "rationale": "The SOP refers to digital sheets and systems for tracking, not physical whiteboards.",
+                            "isCorrect": false
+                        }
+                    ]
+                }
+            ]
+        };
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let answeredQuestions = new Array(quizData.questions.length).fill(null); // To store selected option index
+
+        const quizContent = document.getElementById('quiz-content');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const scoreDisplay = document.getElementById('score-display');
+        const restartButton = document.getElementById('restartButton');
+        const progressBar = document.getElementById('progressBar');
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= quizData.questions.length) {
+                showResults();
+                return;
+            }
+
+            const question = quizData.questions[currentQuestionIndex];
+            quizContent.innerHTML = `
+                <div class="question-text">${currentQuestionIndex + 1}. ${question.question}</div>
+                <div id="answer-options-container">
+                    ${question.answerOptions.map((option, index) => `
+                        <div class="answer-option" data-index="${index}">
+                            ${option.text}
+                            <div class="rationale-text hidden" data-rationale-for="${index}">${option.rationale}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="hint-text">Hint: ${question.hint}</div>
+            `;
+
+            const options = quizContent.querySelectorAll('.answer-option');
+            options.forEach(option => {
+                option.addEventListener('click', selectOption);
+            });
+
+            // Restore selected answer if already answered
+            if (answeredQuestions[currentQuestionIndex] !== null) {
+                const selectedOptionIndex = answeredQuestions[currentQuestionIndex];
+                const selectedOptionElement = quizContent.querySelector(`[data-index="${selectedOptionIndex}"]`);
+                if (selectedOptionElement) {
+                    selectedOptionElement.classList.add('selected');
+                    showRationale(selectedOptionElement, selectedOptionIndex);
+                    disableOptions();
+                }
+            } else {
+                enableOptions();
+            }
+
+            updateNavigationButtons();
+            updateProgressBar();
+        }
+
+        function selectOption(event) {
+            if (selectedAnswer !== null) return; // Prevent changing answer after selection
+
+            const clickedOption = event.currentTarget;
+            const selectedOptionIndex = parseInt(clickedOption.dataset.index);
+            const question = quizData.questions[currentQuestionIndex];
+
+            selectedAnswer = selectedOptionIndex;
+            answeredQuestions[currentQuestionIndex] = selectedOptionIndex;
+
+            disableOptions();
+
+            // Apply correct/incorrect styling
+            question.answerOptions.forEach((option, index) => {
+                const optionElement = quizContent.querySelector(`[data-index="${index}"]`);
+                if (optionElement) {
+                    optionElement.classList.remove('selected'); // Remove selected from others
+                    if (option.isCorrect) {
+                        optionElement.classList.add('correct');
+                    } else if (index === selectedOptionIndex) {
+                        optionElement.classList.add('incorrect');
+                    }
+                }
+            });
+
+            // Show rationale for all options
+            showRationale(clickedOption, selectedOptionIndex);
+
+            if (question.answerOptions[selectedOptionIndex].isCorrect) {
+                score++;
+            }
+        }
+
+        function showRationale(selectedElement, selectedIndex) {
+            const question = quizData.questions[currentQuestionIndex];
+            question.answerOptions.forEach((option, index) => {
+                const rationaleElement = quizContent.querySelector(`[data-rationale-for="${index}"]`);
+                if (rationaleElement) {
+                    rationaleElement.classList.remove('hidden');
+                }
+            });
+        }
+
+        function disableOptions() {
+            const options = quizContent.querySelectorAll('.answer-option');
+            options.forEach(option => {
+                option.removeEventListener('click', selectOption);
+                option.style.cursor = 'default';
+            });
+        }
+
+        function enableOptions() {
+            selectedAnswer = null; // Reset selected answer for new question
+            const options = quizContent.querySelectorAll('.answer-option');
+            options.forEach(option => {
+                option.addEventListener('click', selectOption);
+                option.classList.remove('selected', 'correct', 'incorrect');
+                const rationaleElement = option.querySelector('.rationale-text');
+                if (rationaleElement) {
+                    rationaleElement.classList.add('hidden');
+                }
+                option.style.cursor = 'pointer';
+            });
+        }
+
+        function updateNavigationButtons() {
+            prevButton.disabled = currentQuestionIndex === 0;
+            if (currentQuestionIndex === quizData.questions.length - 1) {
+                nextButton.textContent = 'Finish Quiz';
+            } else {
+                nextButton.textContent = 'Next';
+            }
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex + 1) / quizData.questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function showResults() {
+            quizContent.classList.add('hidden');
+            prevButton.classList.add('hidden');
+            nextButton.classList.add('hidden');
+            scoreDisplay.classList.remove('hidden');
+            restartButton.classList.remove('hidden');
+            progressBar.classList.add('hidden');
+
+            scoreDisplay.innerHTML = `You scored ${score} out of ${quizData.questions.length}!`;
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            selectedAnswer = null;
+            answeredQuestions.fill(null);
+
+            quizContent.classList.remove('hidden');
+            prevButton.classList.remove('hidden');
+            nextButton.classList.remove('hidden');
+            scoreDisplay.classList.add('hidden');
+            restartButton.classList.add('hidden');
+            progressBar.classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        prevButton.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (currentQuestionIndex < quizData.questions.length) {
+                currentQuestionIndex++;
+                loadQuestion();
+            }
+        });
+
+        restartButton.addEventListener('click', restartQuiz);
+
+        // Initial load
+        loadQuestion();
+    </script>
+</body>
+</html>
